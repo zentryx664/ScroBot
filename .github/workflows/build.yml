@@ -1,0 +1,51 @@
+
+name: Build ScroBot
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "**"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - Android32
+          - Android64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Geode mod
+        uses: geode-sdk/build-geode-mod@main
+        with:
+          combine: true
+          target: ${{ matrix.target }}
+
+  package:
+    name: Package ScroBot
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Combine Android builds
+        id: build
+        uses: geode-sdk/build-geode-mod/combine@main
+
+      - name: Upload final build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ScroBot-Android
+          path: ${{ steps.build.outputs.build-output }}
+          if-no-files-found: error
+          
