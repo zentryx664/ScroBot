@@ -1,0 +1,18 @@
+{
+  "geode": "5.0.0",
+  "gd": { "win": "2.2081", "android": "2.2081", "mac": "2.2081", "ios": "2.2081" },
+  "id": "yourname.scrobot",
+  "name": "ScroBot",
+  "version": "v1.1.0",
+  "developer": "YourName",
+  "description": "Macro bot and a pack of toggleable mods. Tab on PC, star button in the pause menu on mobile.",
+  "tags": ["utility", "cheat"],
+  "settings": {
+    "open-menu": {
+      "type": "keybind",
+      "name": "Open Menu (PC)",
+      "description": "Shows or hides the mod panels.",
+      "default": "Tab"
+    }
+  }
+}
