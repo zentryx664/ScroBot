@@ -3,11 +3,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
     set(CMAKE_OSX_ARCHITECTURES "arm64")
-else()
+elseif (APPLE)
     set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
 endif()
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-project(ScroBot VERSION 1.1.0)
+project(ScroBot VERSION 1.2.0)
 
 # Every .cpp under src/ is built automatically: add a hack = add a file.
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
