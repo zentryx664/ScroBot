@@ -62,7 +62,13 @@ struct Raw { int b; bool d, p; Clock::time_point t; };
 std::vector<Raw> g_held;
 Clock::time_point g_last = Clock::now();
 }
+// queueButton is an inline function on Windows (no address in the bindings), so it cannot be
+// hooked there. Click Precision is therefore only active on platforms where the hook exists.
+#ifdef GEODE_IS_WINDOWS
+bool scro::fps::precise() { return false; }
+#else
 bool scro::fps::precise() { return boost.b && precision.b; }
+#endif
 bool scro::fps::pending() { return !g_held.empty(); }
 void scro::fps::hold(int b, bool d, bool p) { g_held.push_back({b, d, p, Clock::now()}); }
 
@@ -81,6 +87,7 @@ std::vector<scro::fps::Held> scro::fps::drain() {
     return out;
 }
 
+#ifndef GEODE_IS_WINDOWS
 class $modify(ScroFpsQueue, GJBaseGameLayer) {
     void queueButton(int button, bool down, bool isPlayer1, double timestamp) {
         if (!scro::fps::g_bypass && scro::fps::precise() && PlayLayer::get())
@@ -88,3 +95,4 @@ class $modify(ScroFpsQueue, GJBaseGameLayer) {
         GJBaseGameLayer::queueButton(button, down, isPlayer1, timestamp);
     }
 };
+#endif
