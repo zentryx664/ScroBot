@@ -34,6 +34,9 @@ class $modify(ScroMacroLayer, GJBaseGameLayer) {
                 GJBaseGameLayer::handleButton(a.down, a.button, a.p1);
                 bot.injecting = false;
             }
+            // End playback cleanly, but retain assistedRun until a fresh run/quit so
+            // manual continuation cannot be mistaken for a clean completion.
+            if (bot.index >= bot.actions.size()) bot.state = BotState::Idle;
         }
         GJBaseGameLayer::processCommands(dt, isHalfTick, isLastTick);
     }
@@ -47,11 +50,16 @@ class $modify(ScroMacroPlay, PlayLayer) {
         if (bot.state == BotState::Recording) {
             while (!bot.actions.empty() && bot.actions.back().frame >= frame) bot.actions.pop_back();
         } else if (bot.state == BotState::Playing) {
+            bot.assistedRun = true;
+            this->m_isTestMode = true;
             bot.seek(frame);
+        } else if (frame == 0) {
+            bot.assistedRun = false;
         }
     }
     void onQuit() {
         Bot::get().state = BotState::Idle;
+        Bot::get().assistedRun = false;
         PlayLayer::onQuit();
     }
 };

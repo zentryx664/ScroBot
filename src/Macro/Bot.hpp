@@ -20,6 +20,9 @@ public:
     std::vector<Action> actions;
     size_t index = 0;
     bool injecting = false;
+    // Remains true for the entire run after macro playback has affected it,
+    // even if playback reaches the end before the level completes.
+    bool assistedRun = false;
     static Bot& get();
     static std::filesystem::path dir();
     bool save(std::string const& name);
