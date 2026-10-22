@@ -7,12 +7,9 @@ using namespace geode::prelude;
 class $modify(ScroPauseLayer, PauseLayer) {
     void customSetup() {
         PauseLayer::customSetup();
-        auto ac = scro::theme::accent();
-        auto n = scro::draw::button("Scro", 64, 24);
-        if (auto star = CCSprite::createWithSpriteFrameName("GJ_starsIcon_001.png")) {
-            star->setScale(0.3f); star->setColor(ac); star->setPosition(12, 13); n->addChild(star);
-        }
+        auto n = scro::draw::button("Scro", 54, 24);
         auto b = CCMenuItemSpriteExtra::create(n, this, menu_selector(ScroPauseLayer::onScro));
+        b->m_scaleMultiplier = 1.f;
         auto menu = CCMenu::create();
         menu->addChild(b);
         auto win = CCDirector::get()->getWinSize();
