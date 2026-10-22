@@ -4,7 +4,7 @@
 using namespace geode::prelude;
 
 namespace scro {
-class MacroView : public CCNode {
+class MacroView : public CCNode, public FLAlertLayerProtocol {
     float m_w = 0, m_h = 0;
     bool m_d = false;
     std::function<void()> m_onStart;
@@ -22,5 +22,6 @@ public:
     void onSave(CCObject*);
     void onPick(CCObject*);
     void onPage(CCObject*);
+    void FLAlert_Clicked(FLAlertLayer*, bool btn2) override;
 };
 }

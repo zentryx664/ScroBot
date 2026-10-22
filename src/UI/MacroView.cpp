@@ -15,7 +15,7 @@ MacroView* MacroView::create(float w, bool desk, std::function<void()> onStart) 
 }
 bool MacroView::setup(float w, bool desk, std::function<void()> onStart) {
     m_w = w; m_d = desk; m_onStart = std::move(onStart);
-    m_h = desk ? 150.f : 190.f;
+    m_h = desk ? 240.f : 190.f;
     this->setContentSize({w, m_h});
     rebuild();
     return true;
@@ -44,7 +44,9 @@ void MacroView::rebuild() {
     // status: dot + text
     auto dot = rect(8, 8, rec ? ccc4(229, 72, 77, 255) : play ? ccc4(76, 195, 138, 255) : ccc4(70, 70, 74, 255));
     dot->setPosition(mg, y - sth / 2 - 4); this->addChild(dot);
-    this->addChild(label(rec ? "Recording" : play ? "Playing" : "Idle", fs, theme::TEXT, {0.f, 0.5f}, {mg + 14, y - sth / 2}));
+    std::string status = rec ? "Recording" : play ? "Playing" : bot.assistedRun ? "SHOWCASE - MACRO ASSISTED" : "Idle";
+    this->addChild(label(status, fs, bot.assistedRun ? ccColor3B{255, 190, 95} : theme::TEXT,
+        {0.f, 0.5f}, {mg + 14, y - sth / 2}));
     this->addChild(label(fmt::format("{} inputs", bot.actions.size()), fs * 0.9f, theme::MUTED, {1.f, 0.5f}, {m_w - mg, y - sth / 2}));
     y -= sth + gap;
 
@@ -104,6 +106,8 @@ void MacroView::begin(int st) {
     auto& b = Bot::get();
     auto state = static_cast<BotState>(st);
     if (b.state == state) { b.state = BotState::Idle; rebuild(); return; }
+    if (state == BotState::Recording) b.assistedRun = false;
+    if (state == BotState::Playing) b.assistedRun = true;
     PauseLayer* pause = nullptr;
     if (auto scene = CCDirector::get()->getRunningScene()) pause = scene->getChildByType<PauseLayer>(0);
     b.state = state;
@@ -115,8 +119,14 @@ void MacroView::begin(int st) {
 }
 void MacroView::onRecord(CCObject*) { begin(static_cast<int>(BotState::Recording)); }
 void MacroView::onPlay(CCObject*) {
-    if (Bot::get().actions.empty() && Bot::get().state != BotState::Playing) return notify("Load a macro first", false);
-    begin(static_cast<int>(BotState::Playing));
+    auto& bot = Bot::get();
+    if (bot.state == BotState::Playing) { begin(static_cast<int>(BotState::Playing)); return; }
+    if (bot.actions.empty()) return notify("Load a macro first", false);
+    FLAlertLayer::create(this, "Macro Playback Warning", "Cancel", "Continue",
+        "Macros are for fun, practice, testing and level showcases. This run will be marked macro-assisted, and completion progress will be restricted where the game supports it. Do not present it as a legitimate completion.", 320.f)->show();
+}
+void MacroView::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
+    if (btn2 && !Bot::get().actions.empty()) begin(static_cast<int>(BotState::Playing));
 }
 void MacroView::onSave(CCObject*) {
     bool ok = m_input && Bot::get().save(m_input->getString());

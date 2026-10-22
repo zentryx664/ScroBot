@@ -1,21 +1,28 @@
 #include "UI/OptionList.hpp"
 #include "UI/Theme.hpp"
 #include "Utils/Draw.hpp"
+#include <algorithm>
 using namespace scro;
 using namespace scro::draw;
 
-OptionList* OptionList::create(std::string const& cat, float w, float availH, bool animate, std::function<void(Option*)> onSel) {
+OptionList* OptionList::create(std::string const& cat, float w, float availH, bool animate, std::function<void(Option*)> onSel, std::string const& section) {
     auto r = new OptionList();
-    if (r->init() && r->setup(cat, w, availH, animate, std::move(onSel))) { r->autorelease(); return r; }
+    if (r->init() && r->setup(cat, w, availH, animate, std::move(onSel), section)) { r->autorelease(); return r; }
     delete r;
     return nullptr;
 }
 
-bool OptionList::setup(std::string const& cat, float w, float availH, bool animate, std::function<void(Option*)> onSel) {
+bool OptionList::setup(std::string const& cat, float w, float availH, bool animate, std::function<void(Option*)> onSel, std::string const& section) {
     m_w = w; m_onSel = std::move(onSel);
     m_opts = inCategory(cat);
+    if (!section.empty()) {
+        m_opts.erase(std::remove_if(m_opts.begin(), m_opts.end(), [&](Option* o) { return o->section != section; }), m_opts.end());
+    }
     int sections = 0;
-    { std::string last; for (auto o : m_opts) if (o->section != last) { sections++; last = o->section; } }
+    if (section.empty()) {
+        std::string last;
+        for (auto o : m_opts) if (o->section != last) { sections++; last = o->section; }
+    }
     float secH = 20.f;
     float r = std::clamp((availH - sections * secH) / std::max<size_t>(m_opts.size(), 1), 22.f, 28.f);
     m_h = m_opts.size() * r + sections * secH;
@@ -34,7 +41,7 @@ bool OptionList::setup(std::string const& cat, float w, float availH, bool anima
         auto o = m_opts[i];
         float delay = animate ? 0.02f * i : 0.f;
         int idx = static_cast<int>(i);
-        if (o->section != last) {                                   // section heading
+        if (section.empty() && o->section != last) {               // section heading
             last = o->section;
             y -= secH;
             this->addChild(label(o->section, 0.62f, theme::MUTED, {0.f, 0.5f}, {2.f, y + secH / 2 + 1}));

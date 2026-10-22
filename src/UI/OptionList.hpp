@@ -11,9 +11,9 @@ class OptionList : public CCNode {
     std::vector<Option*> m_opts;
     std::vector<CCLabelBMFont*> m_vals;
     std::function<void(Option*)> m_onSel;
-    bool setup(std::string const& cat, float w, float availH, bool animate, std::function<void(Option*)> onSel);
+    bool setup(std::string const& cat, float w, float availH, bool animate, std::function<void(Option*)> onSel, std::string const& section);
 public:
-    static OptionList* create(std::string const& cat, float w, float availH, bool animate, std::function<void(Option*)> onSel);
+    static OptionList* create(std::string const& cat, float w, float availH, bool animate, std::function<void(Option*)> onSel, std::string const& section = "");
     float height() const { return m_h; }
     void onToggle(CCObject*);
     void onStep(CCObject*);
