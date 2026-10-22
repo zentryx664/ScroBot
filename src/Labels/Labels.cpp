@@ -5,6 +5,7 @@
 #include "Utils/Draw.hpp"
 #include "Utils/Settings.hpp"
 #include <Geode/modify/PlayLayer.hpp>
+#include <algorithm>
 #include <chrono>
 #include <ctime>
 #include <deque>
@@ -21,9 +22,10 @@ static auto& oOpac = step("Labels", "lopacity", "Label Opacity", "", 70.f, 10.f,
 
 namespace {
 Ref<CCNode> g_hud; Ref<CCMenu> g_menu;
-Ref<CCLabelBMFont> g_stats, g_macro, g_info;
+Ref<CCLabelBMFont> g_stats, g_macro, g_info, g_perf;
 float g_fps = 60.f, g_run = 0.f, g_pulse = 0.f, g_acc = 0.f;
-std::string g_lastStats, g_lastMacro;
+float g_frameAvgMs = 1000.f / 60.f, g_framePeakMs = 0.f;
+std::string g_lastStats, g_lastMacro, g_lastPerf;
 std::deque<Clock::time_point> g_clicks;
 }
 
@@ -35,12 +37,13 @@ CCNode* scro::labels::hud(PlayLayer* pl) {
     g_stats = draw::label("", 0.7f, theme::TEXT, {0.f, 1.f}, {8.f, win.height - 8.f});
     g_macro = draw::label("", 0.7f, theme::TEXT, {0.f, 1.f}, {8.f, win.height - 24.f});
     g_info = draw::label("", 0.8f, theme::TEXT, {0.5f, 1.f}, {win.width / 2, win.height - 30.f});
+    g_perf = draw::label("", 0.62f, theme::TEXT, {0.f, 1.f}, {8.f, win.height - 40.f});
     auto m = CCMenu::create();
     m->setPosition(0, 0);
-    hud->addChild(g_stats); hud->addChild(g_macro); hud->addChild(g_info); hud->addChild(m);
+    hud->addChild(g_stats); hud->addChild(g_macro); hud->addChild(g_info); hud->addChild(g_perf); hud->addChild(m);
     pl->m_uiLayer->addChild(hud, 100);
     g_hud = hud; g_menu = m;
-    g_lastStats.clear(); g_lastMacro.clear();
+    g_lastStats.clear(); g_lastMacro.clear(); g_lastPerf.clear();
     return hud;
 }
 CCMenu* scro::labels::menu(PlayLayer* pl) { hud(pl); return g_menu; }
@@ -49,7 +52,15 @@ void scro::labels::click() { g_clicks.push_back(Clock::now()); }
 
 static void tickLabels(PlayLayer* pl, float dt, bool frozen) {
     labels::hud(pl);
-    if (dt > 0.f) g_fps = g_fps * 0.9f + (1.f / dt) * 0.1f;
+    static auto& perfDiag = find("fpsdiag");
+    if (dt > 0.f) {
+        g_fps = g_fps * 0.9f + (1.f / dt) * 0.1f;
+        if (perfDiag.b) {
+            float frameMs = dt * 1000.f;
+            g_frameAvgMs = g_frameAvgMs * 0.9f + frameMs * 0.1f;
+            g_framePeakMs = std::max(g_framePeakMs, frameMs);
+        }
+    }
     if (!frozen) g_run += dt;
     g_pulse += dt; g_acc += dt;
     if (g_acc < 0.1f) return;                      // text is rebuilt 10x/s at most
@@ -59,12 +70,23 @@ static void tickLabels(PlayLayer* pl, float dt, bool frozen) {
     std::string m;
     if (bot.state == BotState::Recording) m = fmt::format("REC  {} inputs", bot.actions.size());
     else if (bot.state == BotState::Playing) m = fmt::format("PLAY  frame {}", pl->m_gameState.m_currentProgress);
+    else if (bot.assistedRun) m = "MACRO-ASSISTED SHOWCASE";
     if (m != g_lastMacro) {
         g_lastMacro = m;
         g_macro->setString(m.c_str());
         g_macro->setColor(bot.state == BotState::Recording ? ccColor3B{255, 90, 90} : ccColor3B{110, 255, 130});
     }
     if (bot.state == BotState::Recording) g_macro->setOpacity(static_cast<GLubyte>(170 + 80 * std::sin(g_pulse * 5.f)));
+
+    if (perfDiag.b) {
+        std::string perf = fmt::format("FRAME {:.2f} ms   PEAK {:.2f} ms", g_frameAvgMs, g_framePeakMs);
+        if (perf != g_lastPerf) { g_lastPerf = perf; g_perf->setString(perf.c_str()); }
+        g_perf->setColor(g_framePeakMs > 1000.f / 30.f ? ccColor3B{255, 150, 100} : theme::TEXT);
+    } else if (!g_lastPerf.empty()) {
+        g_lastPerf.clear();
+        g_perf->setString("");
+    }
+    g_framePeakMs = 0.f;
 
     if (!(oFps.b || oCps.b || oAtt.b || oTime.b || oClock.b || oFrame.b)) {
         if (!g_lastStats.empty()) { g_lastStats.clear(); g_stats->setString(""); }
@@ -92,8 +114,10 @@ static tick::Reg regLabels(tickLabels);
 class $modify(ScroLabelsLayer, PlayLayer) {
     void resetLevel() { PlayLayer::resetLevel(); g_run = 0.f; }
     void onQuit() {
-        g_hud = nullptr; g_menu = nullptr; g_stats = nullptr; g_macro = nullptr; g_info = nullptr;
+        g_hud = nullptr; g_menu = nullptr; g_stats = nullptr; g_macro = nullptr; g_info = nullptr; g_perf = nullptr;
         g_clicks.clear();
+        g_lastStats.clear(); g_lastMacro.clear(); g_lastPerf.clear();
+        g_frameAvgMs = 1000.f / 60.f; g_framePeakMs = 0.f;
         PlayLayer::onQuit();
     }
 };
