@@ -114,8 +114,9 @@ class ScroMenu : public FLAlertLayer {
                 mark->runAction(CCFadeTo::create(0.1f, ma));
                 lbl->runAction(CCTintTo::create(0.1f, lc.r, lc.g, lc.b));
             } else {
-                static_cast<CCLayerColor*>(mark)->setColor(mc);
-                mark->setOpacity(ma);
+                auto markColor = static_cast<CCLayerColor*>(mark);
+                markColor->setColor(mc);
+                markColor->setOpacity(ma);
                 lbl->setColor(lc);
             }
         }
