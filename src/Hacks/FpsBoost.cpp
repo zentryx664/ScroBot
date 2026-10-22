@@ -73,20 +73,9 @@ std::vector<scro::fps::Held> scro::fps::drain() {
 }
 
 class $modify(ScroFpsQueue, GJBaseGameLayer) {
-    void queueButton(
-        int button,
-        bool down,
-        bool isPlayer1,
-        double timestamp
-    ) {
-        if (!scro::fps::g_bypass &&
-            scro::fps::precise() &&
-            PlayLayer::get()) {
+    void queueButton(int button, bool down, bool isPlayer1, double timestamp) {
+        if (!scro::fps::g_bypass && scro::fps::precise() && PlayLayer::get())
             return scro::fps::hold(button, down, isPlayer1);
-        }
-
-        GJBaseGameLayer::queueButton(
-            button, down, isPlayer1, timestamp
-        );
+        GJBaseGameLayer::queueButton(button, down, isPlayer1, timestamp);
     }
 };
