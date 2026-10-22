@@ -111,7 +111,9 @@ void FindView::rebuild() {
 }
 
 void FindView::onSearch(CCObject*) {
-    m_query = m_input ? m_input->getString() : m_query;
+    if (m_input) {
+    m_query = m_input->getString();
+    }
     runSearch();
     rebuild();
 }
