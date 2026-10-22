@@ -1,5 +1,6 @@
 #include "Settings.hpp"
 #include <algorithm>
+#include <cmath>
 #include <deque>
 using namespace geode::prelude;
 
