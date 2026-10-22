@@ -20,7 +20,7 @@ class $modify(ScroMacroLayer, GJBaseGameLayer) {
         }
         GJBaseGameLayer::handleButton(down, button, isPlayer1);
     }
-    void processCommands(float dt) {
+    void processCommands(float dt, bool isHalfTick, bool isLastTick) {
         auto& bot = Bot::get();
         if (bot.state == BotState::Playing && PlayLayer::get()) {
             int const frame = m_gameState.m_currentProgress;
@@ -35,7 +35,7 @@ class $modify(ScroMacroLayer, GJBaseGameLayer) {
                 bot.injecting = false;
             }
         }
-        GJBaseGameLayer::processCommands(dt);
+        GJBaseGameLayer::processCommands(dt, isHalfTick, isLastTick);
     }
 };
 
