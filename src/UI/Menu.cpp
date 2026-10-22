@@ -17,7 +17,7 @@ class ScroMenu : public FLAlertLayer {
     CCNode* m_pane = nullptr;
     CCLabelBMFont* m_title = nullptr;
     CCLabelBMFont* m_desc = nullptr;
-    std::vector<CCLayerColor*> m_side;
+    std::vector<CCMenuItemSpriteExtra*> m_side;
     int m_tab = 0;
     bool m_closing = false;
 
@@ -45,41 +45,31 @@ class ScroMenu : public FLAlertLayer {
         m_root->setPosition(win.width / 2, win.height / 2);
         m_mainLayer->addChild(m_root);
 
-        auto bd = rect(W + 2, H + 2, ccc4(34, 34, 38, 255)); bd->setPosition(-1, -1); m_root->addChild(bd);
-        m_root->addChild(rect(W, H, ccc4(14, 14, 16, static_cast<int>(250 * k))));
-        m_root->addChild(rect(SB, H, ccc4(19, 19, 22, static_cast<int>(250 * k))));
-        auto vd = rect(1, H, ccc4(34, 34, 38, 255)); vd->setPosition(SB, 0); m_root->addChild(vd);
+        m_root->addChild(rect(W, H, ccc4(16, 16, 18, static_cast<int>(248 * k))));
+        m_root->addChild(rect(SB, H, ccc4(12, 12, 14, static_cast<int>(248 * k))));
 
-        // sidebar: brand + categories + Back
-        auto ac = theme::accent();
-        if (auto star = CCSprite::createWithSpriteFrameName("GJ_starsIcon_001.png")) {
-            star->setScale(0.45f); star->setColor(ac); star->setPosition(20, H - 20); m_root->addChild(star);
-        }
-        m_root->addChild(label("ScroBot", 0.95f, theme::TEXT, {0.f, 0.5f}, {34, H - 20}));
+        // sidebar: plain wordmark + categories + Back, no icon
+        m_root->addChild(label("Scro", 0.92f, theme::TEXT, {0.f, 0.5f}, {16, H - 20}));
         auto sm = newMenu(m_root);
         for (int i = 0; i < kNumCategories; i++) {
             auto n = CCNode::create();
             n->setContentSize({SB - 12, 24});
-            auto bg = rect(SB - 12, 24, ccc4(26, 26, 30, 255));
-            n->addChild(bg);
-            m_side.push_back(bg);
-            n->addChild(label(kCategories[i], 0.72f, theme::TEXT, {0.f, 0.5f}, {10, 12}));
+            auto mark = rect(2, 14, ccc4(0, 0, 0, 0)); mark->setID("mark"); mark->setPosition(0, 5); n->addChild(mark);
+            auto lbl = label(kCategories[i], 0.68f, theme::MUTED, {0.f, 0.5f}, {10, 12}); lbl->setID("lbl"); n->addChild(lbl);
             auto it = CCMenuItemSpriteExtra::create(n, this, menu_selector(ScroMenu::onTab));
             it->m_scaleMultiplier = 1.f;
-            it->setTag(i); it->setPosition(SB / 2, H - 52 - i * 27.f);
+            it->setTag(i); it->setPosition(SB / 2, H - 52 - i * 26.f);
             sm->addChild(it);
+            m_side.push_back(it);
         }
-        auto back = CCMenuItemSpriteExtra::create(button("Back", SB - 12, 24), this, menu_selector(ScroMenu::onClose));
-        back->m_scaleMultiplier = 1.f; back->setPosition(SB / 2, 18);
+        auto back = CCMenuItemSpriteExtra::create(button("Back", SB - 12, 22), this, menu_selector(ScroMenu::onClose));
+        back->m_scaleMultiplier = 1.f; back->setPosition(SB / 2, 16);
         sm->addChild(back);
 
-        // header
-        m_title = label("", 1.0f, theme::TEXT, {0.f, 0.5f}, {SB + 14, H - 15});
+        // header: just the category name, no version clutter
+        m_title = label("", 0.95f, theme::TEXT, {0.f, 0.5f}, {SB + 14, H - 16});
         m_root->addChild(m_title);
-        m_root->addChild(label(fmt::format("v{}  by  {}", Mod::get()->getVersion().toNonVString(), Mod::get()->getDeveloper()),
-            0.55f, theme::MUTED, {0.f, 0.5f}, {SB + 14, H - 30}));
-        m_root->addChild(label("GD 2.2081  -  Geode 5", 0.55f, theme::MUTED, {1.f, 0.5f}, {W - 12, H - 15}));
-        auto hl = rect(W - SB - 1, 1, ccc4(34, 34, 38, 255)); hl->setPosition(SB + 1, H - HEAD); m_root->addChild(hl);
+        auto hl = rect(W - SB, 1, ccc4(28, 28, 32, 255)); hl->setPosition(SB, H - HEAD); m_root->addChild(hl);
 
         // footer: description + Reset / Save
         auto fl = rect(W - SB - 1, 1, ccc4(34, 34, 38, 255)); fl->setPosition(SB + 1, FOOT); m_root->addChild(fl);
@@ -93,8 +83,11 @@ class ScroMenu : public FLAlertLayer {
         fm->addChild(sv); fm->addChild(rs);
 
         showTab(0, false);
-        m_root->setScale(0.96f);
-        m_root->runAction(CCEaseOut::create(CCScaleTo::create(0.12f, 1.f), 2.f));
+        m_root->setScale(0.95f);
+        m_root->setPositionY(m_root->getPositionY() - 8.f);
+        m_root->runAction(CCSpawn::create(
+            CCEaseExponentialOut::create(CCScaleTo::create(0.2f, 1.f)),
+            CCEaseExponentialOut::create(CCMoveBy::create(0.2f, {0.f, 8.f})), nullptr));
         fadeTree(m_root, 0.f);
         return true;
     }
@@ -107,10 +100,24 @@ class ScroMenu : public FLAlertLayer {
 
     void showTab(int i, bool animate) {
         m_tab = i;
+        auto ac = theme::accent();
         for (int k = 0; k < kNumCategories; k++) {
-            auto c = k == i ? theme::accentDim() : ccColor3B{26, 26, 30};
-            if (animate) m_side[k]->runAction(CCTintTo::create(0.1f, c.r, c.g, c.b));
-            else m_side[k]->setColor(c);
+            auto n = m_side[k]->getNormalImage();
+            auto mark = n->getChildByID("mark");
+            auto lbl = typeinfo_cast<CCLabelBMFont*>(n->getChildByID("lbl"));
+            ccColor3B mc = k == i ? ac : ccColor3B{0, 0, 0};
+            GLubyte ma = k == i ? 255 : 0;
+            ccColor3B lc = k == i ? theme::TEXT : theme::MUTED;
+            if (animate) {
+                mark->stopAllActions(); lbl->stopAllActions();
+                mark->runAction(CCTintTo::create(0.1f, mc.r, mc.g, mc.b));
+                mark->runAction(CCFadeTo::create(0.1f, ma));
+                lbl->runAction(CCTintTo::create(0.1f, lc.r, lc.g, lc.b));
+            } else {
+                static_cast<CCLayerColor*>(mark)->setColor(mc);
+                mark->setOpacity(ma);
+                lbl->setColor(lc);
+            }
         }
         m_title->setString(kCategories[i]);
         if (m_pane) m_pane->removeFromParent();
@@ -118,12 +125,17 @@ class ScroMenu : public FLAlertLayer {
         float availH = H - HEAD - FOOT - 8.f;
         CCNode* pane; float ph;
         if (cat == "Replay") { auto mv = MacroView::create(PW, false, [this] { close(); }); pane = mv; ph = mv->height(); }
-        else { auto ol = OptionList::create(cat, PW, availH, false, [this](Option* o) { setDesc(o); }); pane = ol; ph = ol->height(); }
+        else { auto ol = OptionList::create(cat, PW, availH, animate, [this](Option* o) { setDesc(o); }); pane = ol; ph = ol->height(); }
         pane->setPosition(SB + 14, H - HEAD - 6 - ph);
         m_root->addChild(pane);
         m_pane = pane;
         setDesc(nullptr);
-        if (animate) fadeTree(pane, 0.f);
+        if (animate) {
+            // soft slide + fade when switching categories, not just an instant swap
+            pane->setPositionX(pane->getPositionX() + 10.f);
+            fadeTree(pane, 0.f);
+            pane->runAction(CCEaseOut::create(CCMoveBy::create(0.16f, {-10.f, 0.f}), 2.f));
+        }
     }
 
     void onTab(CCObject* s) {
@@ -146,7 +158,10 @@ public:
     void close() {
         if (m_closing) return;
         m_closing = true;
-        m_root->runAction(CCSequence::create(CCScaleTo::create(0.08f, 0.96f),
+        m_root->runAction(CCSpawn::create(
+            CCEaseIn::create(CCScaleTo::create(0.14f, 0.95f), 2.f),
+            CCEaseIn::create(CCMoveBy::create(0.14f, {0.f, -8.f}), 2.f), nullptr));
+        m_root->runAction(CCSequence::create(CCDelayTime::create(0.1f),
             CCCallFunc::create(this, callfunc_selector(ScroMenu::finish)), nullptr));
     }
     static ScroMenu* create() {
