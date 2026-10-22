@@ -40,24 +40,4 @@ CCNode* button(char const* text, float w, float h) {
     return n;
 }
 
-void triangle(CCNode* parent, bool down, float s, CCPoint pos, ccColor3B c) {
-    auto d = CCDrawNode::create();
-    CCPoint v[3];
-    if (down) { v[0] = {-s, s * 0.6f}; v[1] = {s, s * 0.6f}; v[2] = {0.f, -s * 0.6f}; }
-    else      { v[0] = {-s * 0.6f, s}; v[1] = {-s * 0.6f, -s}; v[2] = {s * 0.6f, 0.f}; }
-    d->drawPolygon(v, 3, ccc4f(c.r / 255.f, c.g / 255.f, c.b / 255.f, 1.f), 0.f, ccc4f(0, 0, 0, 0));
-    d->setPosition(pos);
-    parent->addChild(d);
-}
-
-CCNode* panel(float w, float h, float titleH) {
-    auto a = theme::accent();
-    float k = scro::find("menuopacity").f / 100.f;
-    auto n = CCNode::create();
-    n->setContentSize({w, h});
-    auto bd = rect(w + 2, h + 2, ccc4(32, 32, 34, 255)); bd->setPosition(-1, -1); n->addChild(bd);
-    n->addChild(rect(w, h, ccc4(13, 13, 14, static_cast<int>(248 * k))));
-    auto t = rect(w, titleH, ccc4(a.r, a.g, a.b, 255)); t->setPosition(0, h - titleH); n->addChild(t);
-    return n;
-}
 }
