@@ -27,6 +27,7 @@ Option& action(char const* cat, char const* id, char const* name, char const* de
                std::function<void()> fn, int order);
 Option& find(char const* id);                              // cache the result at the call site
 std::vector<Option*> inCategory(std::string const& cat);   // sorted by `order`
+std::vector<Option*> allOptions();                            // all options, stable references
 
 extern char const* const kCategories[];
 constexpr int kNumCategories = 9;

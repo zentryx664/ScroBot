@@ -34,6 +34,17 @@ std::vector<Option*> inCategory(std::string const& cat) {
     std::stable_sort(v.begin(), v.end(), [](Option* a, Option* b) { return a->order < b->order; });
     return v;
 }
+std::vector<Option*> allOptions() {
+    std::vector<Option*> v;
+    v.reserve(all().size());
+    for (auto& o : all()) v.push_back(&o);
+    std::stable_sort(v.begin(), v.end(), [](Option* a, Option* b) {
+        if (a->cat != b->cat) return a->cat < b->cat;
+        if (a->order != b->order) return a->order < b->order;
+        return a->name < b->name;
+    });
+    return v;
+}
 std::string Option::text() const {
     if (!names.empty()) return names[std::clamp(static_cast<int>(std::lround(f)), 0, static_cast<int>(names.size()) - 1)];
     if (unit == "x") return fmt::format("{:.2f}x", f);
@@ -55,7 +66,9 @@ void save() {
 }
 void changed() {
     static Option* autosave = &find("autosave");
-    if (autosave->b) save(); else Mod::get()->setSavedValue("autosave", false);
+    if (!autosave) return;
+    if (autosave->b) save();
+    else Mod::get()->setSavedValue("autosave", false);
 }
 void reset(std::string const& cat) {
     for (auto& o : all()) {
