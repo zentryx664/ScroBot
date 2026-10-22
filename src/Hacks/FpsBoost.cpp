@@ -14,13 +14,18 @@ static scro::Option& target = scro::step("FPS Boost", "fpstarget", "Target FPS",
     "How high the game may run. Higher is smoother but uses more power.", 5.f, 0.f, 9.f, 1.f, "", 20);
 static scro::Option& precision = scro::toggle("FPS Boost", "clickprec", "Click Precision",
     "Applies every click at the exact moment you pressed it, even on laggy frames, so timing stays perfect.", true, 30);
+static scro::Option& diagnostics = scro::toggle("FPS Boost", "fpsdiag", "Frame-Time Diagnostics",
+    "Show smoothed frame time and recent frame-time peak in the in-level HUD.", false, 40);
+static scro::Option& lowEndCap = scro::toggle("FPS Boost", "lowendcap", "Low-End Safe Cap (120 FPS)",
+    "When enabled, Scro caps its requested target at 120 FPS. This is a ceiling, not a guarantee that the device can render 120 FPS.", true, 50);
 
 static float const kPresets[] = {60, 90, 120, 144, 165, 240, 360, 480, 720, 1000};
 static bool _setup = ([] {
     target.names = {"60", "90", "120", "144", "165", "240", "360", "480", "720", "1000"};
     for (auto* o : {&boost, &target}) o->section = "Frame Rate";
     precision.section = "Input";
-    boost.onChange = target.onChange = [] { scro::fps::apply(); };
+    diagnostics.section = "Diagnostics";
+    boost.onChange = target.onChange = lowEndCap.onChange = [] { scro::fps::apply(); };
 }(), true);
 
 // ---- FPS ---------------------------------------------------------------------------------
@@ -31,7 +36,11 @@ void scro::fps::apply() {
     auto gm = GameManager::sharedState();
     if (!gm) return;
     if (!g_saved) { g_saved = true; g_origFps = gm->m_customFPSTarget; g_origVar = gm->getGameVariable("0116"); }
-    float fps = boost.b ? kPresets[std::clamp(static_cast<int>(target.f), 0, 9)] : g_origFps;
+    int preset = std::clamp(static_cast<int>(target.f), 0, 9);
+    // The low-end profile is a safe ceiling. It cannot create extra performance;
+    // it only prevents Scro from requesting an unnecessarily high target.
+    if (lowEndCap.b) preset = std::min(preset, 2); // 60 / 90 / 120 FPS
+    float fps = boost.b ? kPresets[preset] : g_origFps;
     gm->setGameVariable("0116", boost.b ? true : g_origVar);
     gm->m_customFPSTarget = fps;
     CCApplication::sharedApplication()->setAnimationInterval(1.0 / fps);

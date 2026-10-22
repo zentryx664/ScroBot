@@ -3,6 +3,7 @@
 using namespace geode::prelude;
 
 static auto& noclip = scro::toggle("Global", "noclip", "No Clip", "Ignore hazards. Forces Safe Mode.", false, 20);
+static bool const noclipSection = (noclip.section = "Safety", true);
 
 class $modify(ScroNoClip, PlayLayer) {
     void destroyPlayer(PlayerObject* p, GameObject* o) {

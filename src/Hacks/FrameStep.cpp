@@ -7,6 +7,7 @@ using namespace geode::prelude;
 
 static auto& freeze = scro::toggle("Global", "freeze", "Freeze Player", "Pause physics. Menus stay live.", false, 30);
 static scro::Option& fstep = scro::toggle("Global", "framestep", "Frame Step", "Pause and show a step button.", false, 40);
+static bool const globalSections = ((freeze.section = "General"), (fstep.section = "General"), true);
 static bool g_pending = false;
 
 bool scro::stepper::frozen() { return freeze.b || fstep.b; }
