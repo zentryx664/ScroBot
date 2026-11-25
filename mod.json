@@ -1,0 +1,42 @@
+{
+  "geode": "6.0.0",
+  "gd": {
+    "win": "2.2091",
+    "mac": "2.2091",
+    "android": "2.2091",
+    "ios": "2.2091"
+  },
+  "id": "zentryx.scrobot",
+  "name": "ScroBot",
+  "version": "v2.0.0",
+  "developer": "Zentryx",
+  "description": "A compact macro and gameplay utility menu with editable controls, replay tools, visual options and performance settings. Press Tab + W on desktop or tap the floating orb on touch devices.",
+  "tags": [
+    "utility",
+    "cheat"
+  ],
+  "settings": {
+    "open-menu": {
+      "type": "keybind",
+      "name": "Open Menu (PC)",
+      "description": "Shows or hides the mod panels.",
+      "default": "Tab+W"
+    },
+    "ui-theme": {
+      "type": "string",
+      "name": "Menu Theme",
+      "description": "Auto uses light on desktop and dark on mobile. You can override it.",
+      "default": "Auto",
+      "one-of": [
+        "Auto",
+        "Light",
+        "Dark"
+      ]
+    }
+  },
+  "resources": {
+    "sprites": [
+      "resources/sprites/scrobot-orb.png"
+    ]
+  }
+}
