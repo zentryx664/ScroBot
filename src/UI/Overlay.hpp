@@ -33,6 +33,7 @@ public:
     void openWindow(std::string const& id); // expand a window and bring it to the front
     void setInfo(std::string const& text);  // line shown at the bottom of the screen
 
+    void registerWithTouchDispatcher() override;
     bool ccTouchBegan(CCTouch* t, CCEvent* e) override;
     void ccTouchMoved(CCTouch* t, CCEvent* e) override;
     void ccTouchEnded(CCTouch* t, CCEvent* e) override;
@@ -72,6 +73,7 @@ private:
     void saveWindow(Win const& w);
     void savePositions();
     void placeBall();
+    void setBallVisualScale(float multiplier);
     void clampBall();
     void clampWindow(Win& w);
     void bringToFront(size_t index);
@@ -99,7 +101,6 @@ private:
     CCPoint m_ballPos, m_ballFrac{0.05f, 0.6f};
 
     bool m_touching = false, m_moved = false, m_held = false;
-    float m_holdT = 0.f;                 // seconds the ball has been pressed
     Zone m_zone = Zone::None;
     int m_cur = -1;
     CCPoint m_start, m_last;

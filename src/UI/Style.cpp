@@ -101,8 +101,7 @@ CCDrawNode* ball(float radius) {
     return n;
 }
 
-// The ScroBot button, drawn entirely in code (no image files needed):
-// rounded square, pink-to-blue border, dark panel and a white lightning bolt.
+// The floating ScroBot button uses the packaged sprite resource.
 CCNode* ballButton(float radius) {
     // Use the supplied ScroBot button artwork as a real sprite.
     // The transparent outer corners preserve the rounded-square silhouette.
@@ -111,12 +110,8 @@ CCNode* ballButton(float radius) {
         // Keep a visible fallback if the resource cannot be loaded.
         return ball(radius);
     }
-    float const diameter = radius * 2.f;
-    auto size = sprite->getContentSize();
-    if (size.width > 0.f && size.height > 0.f) {
-        sprite->setScaleX(diameter / size.width);
-        sprite->setScaleY(diameter / size.height);
-    }
+    // Leave the sprite at its native scale. Overlay::setBallVisualScale()
+    // applies the configured on-screen diameter and pressed-state scaling.
     sprite->setAnchorPoint({0.5f, 0.5f});
     return sprite;
 }

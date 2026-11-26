@@ -4,10 +4,7 @@
 #include "UI/Pages.hpp"
 #include "Utils/Settings.hpp"
 #include <Geode/modify/MenuLayer.hpp>
-#if __has_include(<Geode/ui/SceneManager.hpp>)
-#include <Geode/ui/SceneManager.hpp>
-#define SCRO_HAS_SCENEMANAGER 1
-#endif
+#include <Geode/ui/OverlayManager.hpp>
 #include <algorithm>
 #include <cmath>
 
@@ -62,16 +59,20 @@ Overlay* Overlay::get() { return g_overlay; }
 
 void Overlay::install() {
     if (g_overlay) return;
+
+    // Attach to Geode's persistent overlay scene graph. This gives CCLayer its
+    // normal onEnter/onExit lifecycle so its touch delegate is registered. 
+    auto manager = geode::OverlayManager::get();
+    if (!manager) {
+        log::error("ScroBot: OverlayManager is unavailable; floating menu was not installed");
+        return;
+    }
+
     auto o = new Overlay();
     if (o->init() && o->setup()) {
+        manager->addChild(o, 1000);
         o->autorelease();
         g_overlay = o;
-#ifdef SCRO_HAS_SCENEMANAGER
-        SceneManager::get()->keepAcrossScenes(o);
-#else
-        // Fallback: the notification node is drawn on top of every scene.
-        CCDirector::get()->setNotificationNode(o);
-#endif
     } else {
         delete o;
     }
@@ -123,10 +124,20 @@ void Overlay::clampBall() {
     m_ballPos.y = std::clamp(m_ballPos.y, r, std::max(r, m_win.height - r));
 }
 
+void Overlay::setBallVisualScale(float multiplier) {
+    if (!m_ball) return;
+    auto const size = m_ball->getContentSize();
+    if (size.width <= 0.f || size.height <= 0.f) return;
+
+    float const diameter = kSize.ball * 2.f * multiplier;
+    m_ball->setScaleX(diameter / size.width);
+    m_ball->setScaleY(diameter / size.height);
+}
+
 void Overlay::placeBall() {
     m_ballPos = ccp(m_ballFrac.x * m_win.width, m_ballFrac.y * m_win.height);
     clampBall();
-    m_ball->setScale(ballSize.f / 100.f);
+    setBallVisualScale(ballSize.f / 100.f);
     m_ball->setPosition(m_ballPos);
 }
 
@@ -451,6 +462,15 @@ void Overlay::update(float dt) {
 
 // ---- touch ---------------------------------------------------------------------------------
 
+void Overlay::registerWithTouchDispatcher() {
+    // CCLayer's default registration is a standard multi-touch delegate. This
+    // class implements the single-touch ccTouch* callbacks, so register it as
+    // a targeted delegate or those callbacks will never be dispatched.
+    CCDirector::get()->getTouchDispatcher()->addTargetedDelegate(
+        this, this->getTouchPriority(), true
+    );
+}
+
 int Overlay::windowAt(CCPoint world, bool& onTitle) const {
     auto p = toMenu(world);
     for (size_t k = m_order.size(); k-- > 0;) {
@@ -484,14 +504,20 @@ bool Overlay::ccTouchBegan(CCTouch* t, CCEvent*) {
     m_start = m_last = world;
     m_moved = false;
     m_held = false;
-    m_holdT = 0.f;
     m_zone = Zone::None;
     m_cur = -1;
 
-    if (ccpDistance(world, m_ballPos) <= ballRadius() + 6.f) {
+    // Test against the actual transformed sprite rectangle, with a small
+    // touch margin. This remains accurate when the button is scaled.
+    auto ballLocal = m_ball->convertToNodeSpace(world);
+    auto ballSize = m_ball->getContentSize();
+    float const marginX = 6.f / std::max(0.001f, std::abs(m_ball->getScaleX()));
+    float const marginY = 6.f / std::max(0.001f, std::abs(m_ball->getScaleY()));
+    if (CCRect(-marginX, -marginY, ballSize.width + marginX * 2.f,
+               ballSize.height + marginY * 2.f).containsPoint(ballLocal)) {
         m_zone = Zone::Ball;
         m_touching = true;
-        m_ball->setScale(ballSize.f / 100.f * 0.92f);
+        setBallVisualScale(ballSize.f / 100.f * 0.92f);
         return true;
     }
     if (!m_open) return false;
@@ -549,7 +575,7 @@ void Overlay::ccTouchEnded(CCTouch*, CCEvent*) {
     m_touching = false;
     m_zone = Zone::None;
     m_cur = -1;
-    m_ball->setScale(ballSize.f / 100.f);
+    setBallVisualScale(ballSize.f / 100.f);
 
     if (zone == Zone::Ball) {
         if (m_held) { if (moved) savePositions(); }   // picked up: never toggles
@@ -577,7 +603,7 @@ void Overlay::ccTouchCancelled(CCTouch*, CCEvent*) {
     m_held = false;
     m_zone = Zone::None;
     m_cur = -1;
-    m_ball->setScale(ballSize.f / 100.f);
+    setBallVisualScale(ballSize.f / 100.f);
 }
 
 // ---- keyboard and wheel (desktop) ------------------------------------------------------------

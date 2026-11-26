@@ -42,7 +42,7 @@ ccColor4B withAlpha(ccColor4B c, GLubyte a);
 CCDrawNode* rrect(float w, float h, float radius, ccColor4B fill);
 CCDrawNode* disc(float radius, ccColor4B fill);
 CCDrawNode* ball(float radius);                    // purple ring menu button
-CCNode* ballButton(float radius);                  // ScroBot logo button, drawn in code
+CCNode* ballButton(float radius);                  // ScroBot floating button sprite
 CCDrawNode* cross(float size, float thickness, ccColor4B color);
 
 // `line` is the height of one text line in points.
