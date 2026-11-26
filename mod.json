@@ -11,5 +11,13 @@
   "version": "v2.0.0",
   "developer": "Zentryx",
   "description": "Macro recorder with an editor, plus 30+ options in a clean floating menu. Tap the ball, or press Tab + W on desktop.",
-  "tags": ["utility", "cheat"]
+  "tags": [
+    "utility",
+    "cheat"
+  ],
+  "resources": {
+    "sprites": [
+      "resources/sprites/scrobot-button.png"
+    ]
+  }
 }
