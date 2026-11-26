@@ -98,7 +98,7 @@ bool Overlay::setup() {
     m_info = CCNode::create();
     this->addChild(m_info, 6);
 
-    m_ball = ball(kSize.ball);
+    m_ball = ballButton(kSize.ball);
     m_ball->setAnchorPoint({0.5f, 0.5f});
     this->addChild(m_ball, 10);
 
@@ -428,6 +428,14 @@ std::uint64_t Overlay::signature() const {
 }
 
 void Overlay::update(float dt) {
+    // Press and hold the ball for a moment to pick it up, then drag it anywhere.
+    if (m_touching && m_zone == Zone::Ball && !m_held && !m_moved) {
+        m_holdT += dt;
+        if (m_holdT >= 0.35f) {
+            m_held = true;
+            m_ball->setScale(ballSize.f / 100.f * 1.15f);
+        }
+    }
     auto win = CCDirector::get()->getWinSize();
     if (win.width != m_win.width || win.height != m_win.height) {
         m_win = win;
@@ -483,6 +491,8 @@ bool Overlay::ccTouchBegan(CCTouch* t, CCEvent*) {
     auto world = t->getLocation();
     m_start = m_last = world;
     m_moved = false;
+    m_held = false;
+    m_holdT = 0.f;
     m_zone = Zone::None;
     m_cur = -1;
 
@@ -506,9 +516,13 @@ bool Overlay::ccTouchBegan(CCTouch* t, CCEvent*) {
 void Overlay::ccTouchMoved(CCTouch* t, CCEvent*) {
     if (!m_touching) return;
     auto world = t->getLocation();
-    if (!m_moved && ccpDistance(world, m_start) > kDragSlop) m_moved = true;
+    if (!m_moved && ccpDistance(world, m_start) > kDragSlop) {
+        // the ball only moves after the hold; moving early just cancels the tap
+        m_moved = true;
+    }
     if (m_moved) {
         if (m_zone == Zone::Ball) {
+            if (!m_held) { m_last = world; return; }
             m_ballPos = m_ballPos + (world - m_last);
             clampBall();
             m_ball->setPosition(m_ballPos);
@@ -544,7 +558,9 @@ void Overlay::ccTouchEnded(CCTouch*, CCEvent*) {
     m_ball->setScale(ballSize.f / 100.f);
 
     if (zone == Zone::Ball) {
-        if (moved) savePositions(); else toggle();
+        if (m_held) { if (moved) savePositions(); }   // picked up: never toggles
+        else if (!moved) toggle();                     // quick tap opens/closes the menu
+        m_held = false;
         return;
     }
     if (cur < 0) return;
@@ -564,6 +580,7 @@ void Overlay::ccTouchEnded(CCTouch*, CCEvent*) {
 
 void Overlay::ccTouchCancelled(CCTouch*, CCEvent*) {
     m_touching = false;
+    m_held = false;
     m_zone = Zone::None;
     m_cur = -1;
     m_ball->setScale(ballSize.f / 100.f);

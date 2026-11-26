@@ -101,6 +101,17 @@ CCDrawNode* ball(float radius) {
     return n;
 }
 
+CCNode* ballButton(float radius) {
+    auto sprite = CCSprite::create("scrobot-button.png"_spr);
+    if (!sprite) return ball(radius);                    // sprite missing: fall back to the drawn button
+    auto n = CCNode::create();
+    n->setContentSize({radius * 2.f, radius * 2.f});
+    sprite->setScale(radius * 2.f / std::max(1.f, sprite->getContentSize().width));
+    sprite->setPosition({radius, radius});
+    n->addChild(sprite);
+    return n;
+}
+
 CCDrawNode* cross(float size, float thickness, ccColor4B color) {
     auto n = CCDrawNode::create();
     n->drawSegment({0.f, 0.f}, {size, size}, thickness / 2.f, f4(color));

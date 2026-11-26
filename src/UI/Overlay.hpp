@@ -98,7 +98,8 @@ private:
     CCSize m_win;
     CCPoint m_ballPos, m_ballFrac{0.05f, 0.6f};
 
-    bool m_touching = false, m_moved = false;
+    bool m_touching = false, m_moved = false, m_held = false;
+    float m_holdT = 0.f;                 // seconds the ball has been pressed
     Zone m_zone = Zone::None;
     int m_cur = -1;
     CCPoint m_start, m_last;
