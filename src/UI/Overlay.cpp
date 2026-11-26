@@ -79,7 +79,7 @@ bool Overlay::setup() {
     this->scheduleUpdate();
 
     auto mod = Mod::get();
-    m_ballFrac = {mod->getSavedValue<float>("ui-ball-x", kMobile ? 0.05f : 0.04f), mod->getSavedValue<float>("ui-ball-y", 0.6f)};
+    m_ballFrac = ccp(mod->getSavedValue<float>("ui-ball-x", kMobile ? 0.05f : 0.04f), mod->getSavedValue<float>("ui-ball-y", 0.6f));
     m_win = CCDirector::get()->getWinSize();
 
     m_menu = CCNode::create();
@@ -115,7 +115,7 @@ void Overlay::clampBall() {
 }
 
 void Overlay::placeBall() {
-    m_ballPos = {m_ballFrac.x * m_win.width, m_ballFrac.y * m_win.height};
+    m_ballPos = ccp(m_ballFrac.x * m_win.width, m_ballFrac.y * m_win.height);
     clampBall();
     m_ball->setScale(ballSize.f / 100.f);
     m_ball->setPosition(m_ballPos);
@@ -140,7 +140,7 @@ void Overlay::applyBall() {
 }
 
 void Overlay::resetBallPosition() {
-    m_ballFrac = {kMobile ? 0.05f : 0.04f, 0.6f};
+    m_ballFrac = ccp(kMobile ? 0.05f : 0.04f, 0.6f);
     placeBall();
     savePositions();
 }
@@ -304,7 +304,7 @@ void Overlay::saveWindow(Win const& w) {
 }
 
 void Overlay::savePositions() {
-    m_ballFrac = {m_ballPos.x / m_win.width, m_ballPos.y / m_win.height};
+    m_ballFrac = ccp(m_ballPos.x / m_win.width, m_ballPos.y / m_win.height);
     auto mod = Mod::get();
     mod->setSavedValue<float>("ui-ball-x", m_ballFrac.x);
     mod->setSavedValue<float>("ui-ball-y", m_ballFrac.y);
