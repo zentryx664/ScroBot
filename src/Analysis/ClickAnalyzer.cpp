@@ -1,8 +1,7 @@
 #include "Analysis/ClickAnalyzer.hpp"
 #include "Core/Tick.hpp"
 #include "Labels/Labels.hpp"
-#include "UI/Theme.hpp"
-#include "Utils/Draw.hpp"
+#include "UI/Style.hpp"
 #include "Utils/Settings.hpp"
 #include <algorithm>
 #include <chrono>
@@ -108,7 +107,7 @@ static void clickTick(PlayLayer* pl, float, bool) {
     auto hud = labels::hud(pl);
     if (!g_label || g_label->getParent() != hud) {
         auto win = CCDirector::get()->getWinSize();
-        g_label = draw::label("", 0.55f, theme::text(), {0.f, 1.f}, {8.f, win.height - 58.f});
+        g_label = style::label("", (style::kMobile ? 10.f : 9.f), {255, 255, 255}, {0.f, 1.f}, {8.f, win.height - 58.f});
         g_label->setAlignment(kCCTextAlignmentLeft);
         hud->addChild(g_label);
         g.dirty = true;
