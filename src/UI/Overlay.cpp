@@ -510,11 +510,11 @@ bool Overlay::ccTouchBegan(CCTouch* t, CCEvent*) {
     // Test against the actual transformed sprite rectangle, with a small
     // touch margin. This remains accurate when the button is scaled.
     auto ballLocal = m_ball->convertToNodeSpace(world);
-    auto ballSize = m_ball->getContentSize();
+    auto ballContentSize = m_ball->getContentSize();
     float const marginX = 6.f / std::max(0.001f, std::abs(m_ball->getScaleX()));
     float const marginY = 6.f / std::max(0.001f, std::abs(m_ball->getScaleY()));
-    if (CCRect(-marginX, -marginY, ballSize.width + marginX * 2.f,
-               ballSize.height + marginY * 2.f).containsPoint(ballLocal)) {
+    if (CCRect(-marginX, -marginY, ballContentSize.width + marginX * 2.f,
+               ballContentSize.height + marginY * 2.f).containsPoint(ballLocal)) {
         m_zone = Zone::Ball;
         m_touching = true;
         setBallVisualScale(ballSize.f / 100.f * 0.92f);
