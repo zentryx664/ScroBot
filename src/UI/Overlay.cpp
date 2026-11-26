@@ -428,14 +428,6 @@ std::uint64_t Overlay::signature() const {
 }
 
 void Overlay::update(float dt) {
-    // Press and hold the ball for a moment to pick it up, then drag it anywhere.
-    if (m_touching && m_zone == Zone::Ball && !m_held && !m_moved) {
-        m_holdT += dt;
-        if (m_holdT >= 0.35f) {
-            m_held = true;
-            m_ball->setScale(ballSize.f / 100.f * 1.15f);
-        }
-    }
     auto win = CCDirector::get()->getWinSize();
     if (win.width != m_win.width || win.height != m_win.height) {
         m_win = win;
@@ -522,7 +514,9 @@ void Overlay::ccTouchMoved(CCTouch* t, CCEvent*) {
     }
     if (m_moved) {
         if (m_zone == Zone::Ball) {
-            if (!m_held) { m_last = world; return; }
+            // A tap toggles the menu; moving past the drag threshold moves the button.
+            // Do not require a long-press first, since that made normal drags impossible.
+            m_held = true;
             m_ballPos = m_ballPos + (world - m_last);
             clampBall();
             m_ball->setPosition(m_ballPos);
@@ -605,24 +599,4 @@ bool Overlay::scrollWheel(float y, float x) {
     auto& w = m_wins[static_cast<size_t>(idx)];
     if (w.collapsed || w.contentH <= w.bodyH) return false;
     float amount = y != 0.f ? y : x;
-    w.scroll = std::clamp(w.scroll + amount * 0.4f, 0.f, w.contentH - w.bodyH);
-    if (w.inner) w.inner->setPositionY(w.bodyH + w.scroll);
-    updateBar(w);
-    return true;
-}
-}
-
-// The overlay is created once, when the main menu first appears.
-class $modify(ScroOverlayMenu, MenuLayer) {
-    bool init() {
-        if (!MenuLayer::init()) return false;
-        // Do not build UI in the middle of MenuLayer::init (other mods hook it too).
-        // Wait one frame so the menu is fully constructed first.
-        static bool queued = false;
-        if (!queued) {
-            queued = true;
-            Loader::get()->queueInMainThread([] { scro::ui::Overlay::install(); });
-        }
-        return true;
-    }
-};
+    w.scroll = std::cl
