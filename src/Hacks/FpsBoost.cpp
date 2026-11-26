@@ -35,7 +35,7 @@ struct FpsOptions {
           "Click between frames: your taps register at their exact moment between physics steps, which makes cube jumps and wave turns easier. Also lightens effects. Completions are sent as test runs while it is on.", false, 25)),
 #ifdef GEODE_IS_MOBILE
         zeroDelay(scro::toggle("FPS Boost", "zdcbf", "Zero-Delay CBF",
-          "Mobile only. Uses The game's native click-between-steps behavior.", false, 28)),
+          "Mobile only. Uses the game's native click-between-steps behavior.", false, 28)),
 #endif
 #ifdef GEODE_IS_ANDROID
         precision(scro::toggle("FPS Boost", "clickprec", "Click Precision",
