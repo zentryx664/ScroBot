@@ -4,6 +4,10 @@
 #include "UI/Pages.hpp"
 #include "Utils/Settings.hpp"
 #include <Geode/modify/MenuLayer.hpp>
+#if __has_include(<Geode/ui/SceneManager.hpp>)
+#include <Geode/ui/SceneManager.hpp>
+#define SCRO_HAS_SCENEMANAGER 1
+#endif
 #include <algorithm>
 #include <cmath>
 
@@ -62,7 +66,12 @@ void Overlay::install() {
     if (o->init() && o->setup()) {
         o->autorelease();
         g_overlay = o;
+#ifdef SCRO_HAS_SCENEMANAGER
         SceneManager::get()->keepAcrossScenes(o);
+#else
+        // Fallback: the notification node is drawn on top of every scene.
+        CCDirector::get()->setNotificationNode(o);
+#endif
     } else {
         delete o;
     }
