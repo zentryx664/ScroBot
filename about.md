@@ -1,30 +1,30 @@
-# ScroBot v2.0.0
+# ScroBot
 
-ScroBot is a Geometry Dash utility and macro toolkit. The menu is a draggable, horizontal settings panel with a responsive desktop/mobile layout.
+A macro recorder with an editor, and a set of options for practice and testing, in one floating menu.
 
-## Controls
-- Desktop: press **Tab + W** to open or close the menu. The floating control can also be dragged and clicked.
-- Touch devices: drag the floating orb to reposition it, then tap it to open or close the menu.
-- Drag the menu from its title bar to move the panel. Use Back to close it on touch devices.
+**Open the menu:** tap the ball. On desktop you can also press **Tab + W**. Each category is a window: drag it by its title bar, collapse it with the bar on the left, and tap an option to see what it does.
 
-## Interface
-- Eight source-backed tabs: Global, Player, Level, Visuals, Labels, FPS Boost, Replay and Utility.
-- Global lists all registered options without category headings. Other tabs show only their own options.
-- Step settings have a draggable slider and a numeric text field with Set, both connected to the same stored value.
-- Auto theme uses a light violet desktop palette and a charcoal/violet mobile palette; Light and Dark overrides are available.
+Runs on Windows, macOS, iOS, Android 64-bit and Android 32-bit.
 
-## Macro tools
-- Record inputs from the current level position without restarting the level.
-- Pause and resume recording without losing the current macro.
-- Save and load local `.scro` macros.
-- Play back a loaded macro as an assisted/test run.
-- Inspect inputs, step through them, nudge their frame, delete an input or clear the loaded sequence.
-- Practice checkpoints remain managed by Geometry Dash. Recording rewinds only branch the macro input timeline.
+## Macro
+- Record, play back, save and load macros.
+- Pause, resume, restart, step and place or remove checkpoints without leaving the menu.
+- Inputs are tied to the physics step, so playback does not depend on frame rate.
 
-## Build targets
-- Windows x64
-- macOS (Apple Silicon and Intel)
-- iOS (arm64)
-- Android armv7 and arm64
+## Editor
+- Select inputs and move, delete, duplicate or flip them.
+- Trim the start or end, shift the whole macro, add clicks.
+- Undo and redo every change, then save over the macro or as a new one.
 
-Target versions: Geometry Dash **2.2091**, Geode **6.0.0**. Screen recording remains Android-only.
+## Options
+- **Global:** Speedhack, No Clip, Safe Mode, Freeze Player, Frame Step, folders
+- **Player:** Jump Hack, No Rotation, Solid Wave Trail
+- **Level:** Auto Practice, Practice Music Sync, Level Info
+- **Visuals:** Hitboxes, Low Detail Mode 2, No Death Effect, No Glow, No Particles, Hide UI
+- **Labels:** FPS, CPS, Run Time, Clock, Frame, Click Analyzer
+- **FPS Boost:** frame rate override, Boost Frames, Zero-Delay CBF (mobile), Click Precision (Android), frame-time readout
+- **Theme:** seven themes, menu size, ball size, layout reset
+- Screen Record on Android
+
+## Safety
+Anything that changes how a level plays (No Clip, Jump Hack, Speedhack, Freeze, Frame Step, Boost Frames) and any run that used a macro is always sent as a test run, so nothing is submitted. Macros are for practice, testing and showcases.

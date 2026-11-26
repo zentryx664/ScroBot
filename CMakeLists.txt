@@ -9,7 +9,7 @@ endif()
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 project(ScroBot VERSION 2.0.0)
 
-# Every .cpp under src/ is built automatically: add a feature = add a file.
+# Every .cpp under src/ is built automatically.
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE src)
@@ -20,7 +20,7 @@ endif()
 add_subdirectory($ENV{GEODE_SDK} ${CMAKE_CURRENT_BINARY_DIR}/geode)
 setup_geode_mod(${PROJECT_NAME})
 
-# Screen Record uses EGL and OpenGL ES directly on Android
+# Screen recording uses EGL and OpenGL ES on Android
 if (ANDROID)
     target_link_libraries(${PROJECT_NAME} GLESv2 EGL)
 endif()
