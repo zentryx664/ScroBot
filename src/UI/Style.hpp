@@ -41,7 +41,7 @@ ccColor4B withAlpha(ccColor4B c, GLubyte a);
 
 CCDrawNode* rrect(float w, float h, float radius, ccColor4B fill);
 CCDrawNode* disc(float radius, ccColor4B fill);
-CCDrawNode* ball(float radius);                    // black to white gradient
+CCDrawNode* ball(float radius);                    // purple ring menu button
 CCDrawNode* cross(float size, float thickness, ccColor4B color);
 
 // `line` is the height of one text line in points.

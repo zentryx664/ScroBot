@@ -85,19 +85,17 @@ CCDrawNode* disc(float radius, ccColor4B fill) {
 }
 
 CCDrawNode* ball(float radius) {
+    // Menu button: purple ring, dark centre, white "menu" bars (reads as "opens a panel").
     auto n = CCDrawNode::create();
     float const r = radius;
-    n->drawDot({r, r}, r, ccc4f(1.f, 1.f, 1.f, 0.55f));          // soft rim
-    float const inner = r - 1.5f;
-    constexpr int slices = 30;
-    for (int i = 0; i < slices; ++i) {
-        float y0 = -inner + 2.f * inner * static_cast<float>(i) / slices;
-        float y1 = -inner + 2.f * inner * static_cast<float>(i + 1) / slices + 0.4f;
-        float mid = (y0 + y1) * 0.5f;
-        float half = std::sqrt(std::max(0.f, inner * inner - mid * mid));
-        float shade = (static_cast<float>(i) + 0.5f) / slices;   // bottom black, top white
-        CCPoint q[4] = {{r - half, r + y0}, {r + half, r + y0}, {r + half, r + y1}, {r - half, r + y1}};
-        n->drawPolygon(q, 4, ccc4f(shade, shade, shade, 1.f), 0.f, ccc4f(0, 0, 0, 0));
+    n->drawDot({r, r}, r, ccc4f(0.69f, 0.38f, 1.f, 1.f));                // accent ring
+    n->drawDot({r, r}, r - 2.5f, ccc4f(0.09f, 0.09f, 0.11f, 1.f));       // dark body
+    n->drawDot({r, r + r * 0.12f}, r * 0.55f, ccc4f(1.f, 1.f, 1.f, 0.05f)); // soft top sheen
+    float const half = r * 0.42f, gap = r * 0.30f, t = std::max(1.2f, r * 0.075f);
+    for (int i = -1; i <= 1; ++i) {
+        float y = r + gap * static_cast<float>(i);
+        float len = (i == 0) ? half : half * 0.7f;                         // short top/bottom bars
+        n->drawSegment({r - half, y}, {r - half + len * (i == 0 ? 2.f : 2.f), y}, t, ccc4f(1.f, 1.f, 1.f, 1.f));
     }
     n->setContentSize({r * 2.f, r * 2.f});
     return n;
