@@ -41,7 +41,7 @@ public:
     void keyDown(enumKeyCodes key, double timestamp);
     void keyUp(enumKeyCodes key);
     void keyUp(enumKeyCodes key, double timestamp);
-    void scrollWheel(float a, float b);
+    bool scrollWheel(float y, float x) override;
     void update(float dt) override;
 
 private:
@@ -79,7 +79,7 @@ private:
     void bringToFront(size_t index);
     float menuScale() const;
     float ballRadius() const;
-    float titleH() const { return kSize.title; }
+    float titleH() const { return style::kSize.title; }
     float maxBodyH() const;
     float menuW() const;
     float menuH() const;

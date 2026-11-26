@@ -572,17 +572,18 @@ void Overlay::keyUp(enumKeyCodes key) {
 }
 void Overlay::keyUp(enumKeyCodes key, double) { keyUp(key); }
 
-void Overlay::scrollWheel(float a, float b) {
-    if (!m_open) return;
+bool Overlay::scrollWheel(float y, float x) {
+    if (!m_open) return false;
     bool onTitle = false;
     int idx = windowAt(getMousePos(), onTitle);
-    if (idx < 0) return;
+    if (idx < 0) return false;
     auto& w = m_wins[static_cast<size_t>(idx)];
-    if (w.collapsed || w.contentH <= w.bodyH) return;
-    float amount = a != 0.f ? a : b;
+    if (w.collapsed || w.contentH <= w.bodyH) return false;
+    float amount = y != 0.f ? y : x;
     w.scroll = std::clamp(w.scroll + amount * 0.4f, 0.f, w.contentH - w.bodyH);
     if (w.inner) w.inner->setPositionY(w.bodyH + w.scroll);
     updateBar(w);
+    return true;
 }
 }
 
