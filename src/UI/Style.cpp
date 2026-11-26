@@ -101,14 +101,64 @@ CCDrawNode* ball(float radius) {
     return n;
 }
 
+// The ScroBot button, drawn entirely in code (no image files needed):
+// rounded square, pink-to-blue border, dark panel and a white lightning bolt.
 CCNode* ballButton(float radius) {
-    auto sprite = CCSprite::create("scrobot-button.png"_spr);
-    if (!sprite) return ball(radius);                    // sprite missing: fall back to the drawn button
-    auto n = CCNode::create();
-    n->setContentSize({radius * 2.f, radius * 2.f});
-    sprite->setScale(radius * 2.f / std::max(1.f, sprite->getContentSize().width));
-    sprite->setPosition({radius, radius});
-    n->addChild(sprite);
+    auto n = CCDrawNode::create();
+    float const S = radius * 2.f;
+
+    auto lerp = [](ccColor4F a, ccColor4F b, float t) {
+        return ccc4f(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, 1.f);
+    };
+    // rounded square with a left-to-right colour gradient, built from thin columns
+    auto panel = [&](float inset, float rr, ccColor4F c0, ccColor4F c1, ccColor4F c2) {
+        constexpr int cols = 32;
+        float const lo = inset, hi = S - inset;
+        auto extent = [&](float x, float& yb, float& yt) {
+            float cx = x;
+            if (x < lo + rr) cx = lo + rr; else if (x > hi - rr) cx = hi - rr;
+            float d = std::abs(x - cx);
+            float dy = std::sqrt(std::max(0.f, rr * rr - d * d));
+            yb = lo + rr - dy;
+            yt = hi - rr + dy;
+        };
+        for (int i = 0; i < cols; ++i) {
+            float x0 = lo + (hi - lo) * static_cast<float>(i) / cols;
+            float x1 = lo + (hi - lo) * static_cast<float>(i + 1) / cols + 0.6f;
+            x1 = std::min(x1, hi);
+            float yb0, yt0, yb1, yt1;
+            extent(x0, yb0, yt0);
+            extent(x1, yb1, yt1);
+            float t = (static_cast<float>(i) + 0.5f) / cols;
+            auto col = t < 0.5f ? lerp(c0, c1, t * 2.f) : lerp(c1, c2, (t - 0.5f) * 2.f);
+            CCPoint q[4] = {ccp(x0, yb0), ccp(x1, yb1), ccp(x1, yt1), ccp(x0, yt0)};
+            n->drawPolygon(q, 4, col, 0.f, ccc4f(0, 0, 0, 0));
+        }
+    };
+    ccColor4F black = ccc4f(0.f, 0.f, 0.f, 1.f);
+    panel(0.f, S * 0.27f, black, black, black);                                              // outline
+    panel(S * 0.035f, S * 0.235f, ccc4f(1.f, 0.30f, 1.f, 1.f), ccc4f(0.55f, 0.30f, 1.f, 1.f),
+          ccc4f(0.05f, 0.55f, 1.f, 1.f));                                                    // border
+    panel(S * 0.125f, S * 0.145f, ccc4f(0.45f, 0.10f, 0.85f, 1.f), ccc4f(0.05f, 0.22f, 0.65f, 1.f),
+          ccc4f(0.00f, 0.38f, 0.52f, 1.f));                                                  // panel
+
+    // lightning bolt as convex pieces (unit square, y up)
+    static float const U[][2] = {{0.69f, 0.84f}, {0.24f, 0.49f}, {0.52f, 0.46f}, {0.60f, 0.62f}};
+    static float const L1[][2] = {{0.52f, 0.57f}, {0.66f, 0.57f}, {0.75f, 0.49f}, {0.48f, 0.40f}};
+    static float const L2[][2] = {{0.75f, 0.49f}, {0.30f, 0.145f}, {0.40f, 0.40f}, {0.48f, 0.40f}};
+    auto piece = [&](float const (*p)[2], ccColor4F fill, bool outline) {
+        CCPoint v[4];
+        for (int i = 0; i < 4; ++i) v[i] = ccp(p[i][0] * S, p[i][1] * S);
+        if (outline) n->drawPolygon(v, 4, black, S * 0.03f, black);
+        else n->drawPolygon(v, 4, fill, 0.f, ccc4f(0, 0, 0, 0));
+    };
+    for (auto p : {U, L1, L2}) piece(p, black, true);
+    ccColor4F white = ccc4f(1.f, 1.f, 1.f, 1.f), ice = ccc4f(0.80f, 0.96f, 0.93f, 1.f);
+    piece(U, white, false);
+    piece(L1, white, false);
+    piece(L2, ice, false);
+
+    n->setContentSize({S, S});
     return n;
 }
 
