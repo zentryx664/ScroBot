@@ -562,15 +562,14 @@ void Overlay::ccTouchCancelled(CCTouch*, CCEvent*) {
 
 // ---- keyboard and wheel (desktop) ------------------------------------------------------------
 
-void Overlay::keyDown(enumKeyCodes key) {
+void Overlay::keyDown(enumKeyCodes key, double) {
     if (key == KEY_Tab) m_tabHeld = true;
     else if (key == KEY_W && m_tabHeld) toggle();
 }
-void Overlay::keyDown(enumKeyCodes key, double) { keyDown(key); }
-void Overlay::keyUp(enumKeyCodes key) {
+
+void Overlay::keyUp(enumKeyCodes key, double) {
     if (key == KEY_Tab) m_tabHeld = false;
 }
-void Overlay::keyUp(enumKeyCodes key, double) { keyUp(key); }
 
 bool Overlay::scrollWheel(float y, float x) {
     if (!m_open) return false;

@@ -37,10 +37,8 @@ public:
     void ccTouchMoved(CCTouch* t, CCEvent* e) override;
     void ccTouchEnded(CCTouch* t, CCEvent* e) override;
     void ccTouchCancelled(CCTouch* t, CCEvent* e) override;
-    void keyDown(enumKeyCodes key);
-    void keyDown(enumKeyCodes key, double timestamp);
-    void keyUp(enumKeyCodes key);
-    void keyUp(enumKeyCodes key, double timestamp);
+    void keyDown(enumKeyCodes key, double timestamp) override;
+    void keyUp(enumKeyCodes key, double timestamp) override;
     bool scrollWheel(float y, float x) override;
     void update(float dt) override;
 
