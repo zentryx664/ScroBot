@@ -104,44 +104,21 @@ CCDrawNode* ball(float radius) {
 // The ScroBot button, drawn entirely in code (no image files needed):
 // rounded square, pink-to-blue border, dark panel and a white lightning bolt.
 CCNode* ballButton(float radius) {
-    // Keep the floating button entirely vector-based, but use only a few
-    // stable draw calls. The previous gradient implementation emitted many
-    // narrow polygons and could produce severe rendering artifacts on mobile.
-    auto root = CCNode::create();
-    float const S = radius * 2.f;
-
-    auto outline = rrect(S, S, S * 0.27f, {12, 8, 20, 255});
-    root->addChild(outline);
-
-    float const inset = S * 0.045f;
-    auto border = rrect(S - inset * 2.f, S - inset * 2.f,
-                        S * 0.235f, {205, 75, 255, 255});
-    border->setPosition({inset, inset});
-    root->addChild(border);
-
-    float const inner = S * 0.125f;
-    auto face = rrect(S - inner * 2.f, S - inner * 2.f,
-                      S * 0.145f, {35, 24, 75, 255});
-    face->setPosition({inner, inner});
-    root->addChild(face);
-
-    // A single convex lightning bolt, centered in the button.
-    auto bolt = CCDrawNode::create();
-    CCPoint points[] = {
-        ccp(S * 0.59f, S * 0.86f),
-        ccp(S * 0.34f, S * 0.53f),
-        ccp(S * 0.49f, S * 0.53f),
-        ccp(S * 0.40f, S * 0.15f),
-        ccp(S * 0.69f, S * 0.52f),
-        ccp(S * 0.54f, S * 0.52f),
-    };
-    bolt->drawPolygon(points, 6, ccc4f(1.f, 1.f, 1.f, 1.f),
-                      0.f, ccc4f(0.f, 0.f, 0.f, 0.f));
-    bolt->setContentSize({S, S});
-    root->addChild(bolt);
-
-    root->setContentSize({S, S});
-    return root;
+    // Use the supplied ScroBot button artwork as a real sprite.
+    // The transparent outer corners preserve the rounded-square silhouette.
+    auto sprite = CCSprite::create("scrobot-button.png"_spr);
+    if (!sprite) {
+        // Keep a visible fallback if the resource cannot be loaded.
+        return ball(radius);
+    }
+    float const diameter = radius * 2.f;
+    auto size = sprite->getContentSize();
+    if (size.width > 0.f && size.height > 0.f) {
+        sprite->setScaleX(diameter / size.width);
+        sprite->setScaleY(diameter / size.height);
+    }
+    sprite->setAnchorPoint({0.5f, 0.5f});
+    return sprite;
 }
 
 CCDrawNode* cross(float size, float thickness, ccColor4B color) {
