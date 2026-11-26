@@ -599,4 +599,24 @@ bool Overlay::scrollWheel(float y, float x) {
     auto& w = m_wins[static_cast<size_t>(idx)];
     if (w.collapsed || w.contentH <= w.bodyH) return false;
     float amount = y != 0.f ? y : x;
-    w.scroll = std::cl
+    w.scroll = std::clamp(w.scroll + amount * 0.4f, 0.f, w.contentH - w.bodyH);
+    if (w.inner) w.inner->setPositionY(w.bodyH + w.scroll);
+    updateBar(w);
+    return true;
+}
+}
+
+// The overlay is created once, when the main menu first appears.
+class $modify(ScroOverlayMenu, MenuLayer) {
+    bool init() {
+        if (!MenuLayer::init()) return false;
+        // Do not build UI in the middle of MenuLayer::init (other mods hook it too).
+        // Wait one frame so the menu is fully constructed first.
+        static bool queued = false;
+        if (!queued) {
+            queued = true;
+            Loader::get()->queueInMainThread([] { scro::ui::Overlay::install(); });
+        }
+        return true;
+    }
+};
