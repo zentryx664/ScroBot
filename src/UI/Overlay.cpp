@@ -599,7 +599,13 @@ bool Overlay::scrollWheel(float y, float x) {
 class $modify(ScroOverlayMenu, MenuLayer) {
     bool init() {
         if (!MenuLayer::init()) return false;
-        scro::ui::Overlay::install();
+        // Do not build UI in the middle of MenuLayer::init (other mods hook it too).
+        // Wait one frame so the menu is fully constructed first.
+        static bool queued = false;
+        if (!queued) {
+            queued = true;
+            Loader::get()->queueInMainThread([] { scro::ui::Overlay::install(); });
+        }
         return true;
     }
 };
