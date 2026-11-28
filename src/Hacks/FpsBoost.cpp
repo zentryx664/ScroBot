@@ -7,7 +7,7 @@
 #include <chrono>
 #include <cmath>
 #include <vector>
-#include "Analysis/ClickAnalyzer.hpp"
+#include "Analysis/FrameCounter.hpp"
 #include "Core/Tick.hpp"
 
 using namespace geode::prelude;
@@ -28,9 +28,9 @@ struct FpsOptions {
 
     FpsOptions()
       : boost(scro::toggle("FPS Boost", "fpsboost", "FPS Boost",
-          "Forces the game to run at 120 FPS or higher (never below 120). Turn VSync off in the game's video settings for best results.", false, 10)),
-        target(scro::step("FPS Boost", "fpstarget120", "Target FPS",
-          "Frame rate to force. The minimum is 120.", 0.f, 0.f, 7.f, 1.f, "", 20)),
+          "Locks the game at the Target FPS you choose (60 up to 1000): it will not run faster or slower than the target. Turn VSync off in the game's video settings for best results.", false, 10)),
+        target(scro::step("FPS Boost", "fpstarget", "Target FPS",
+          "Frame rate to lock the game at. Once chosen it is held exactly: no drops below it, no going above it.", 1.f, 0.f, 8.f, 1.f, "", 20)),
         boostFrames(scro::toggle("FPS Boost", "boostframes", "Boost Frames",
           "Click between frames: your taps register at their exact moment between physics steps, which makes cube jumps and wave turns easier. Also lightens effects. Completions are sent as test runs while it is on.", false, 25)),
 #ifdef GEODE_IS_MOBILE
@@ -43,7 +43,7 @@ struct FpsOptions {
 #endif
         diagnostics(scro::toggle("FPS Boost", "fpsdiag", "Frame-Time Diagnostics",
           "Show smoothed frame time and recent frame-time peak in the in-level HUD.", false, 40)) {
-        target.names = {"120", "144", "165", "240", "360", "480", "720", "1000"};
+        target.names = {"60", "120", "144", "165", "240", "360", "480", "720", "1000"};
         for (auto* option : {&boost, &target, &boostFrames}) option->section = "Frame Rate";
 #ifdef GEODE_IS_MOBILE
         zeroDelay.section = "Input";
@@ -66,7 +66,7 @@ FpsOptions& options() {
     return value;
 }
 
-constexpr float kPresets[] = {120.f, 144.f, 165.f, 240.f, 360.f, 480.f, 720.f, 1000.f};
+constexpr float kPresets[] = {60.f, 120.f, 144.f, 165.f, 240.f, 360.f, 480.f, 720.f, 1000.f};
 
 struct RawClick {
     int button;
@@ -130,7 +130,7 @@ void scro::fps::initOptions() {
             if (!o.boost.b) return;
             auto* gm = GameManager::sharedState();
             if (gm && std::fabs(gm->m_customFPSTarget -
-                    kPresets[std::clamp(static_cast<int>(std::lround(o.target.f)), 0, 7)]) > 0.5f) {
+                    kPresets[std::clamp(static_cast<int>(std::lround(o.target.f)), 0, 8)]) > 0.5f) {
                 scro::fps::apply();
             }
         });
@@ -171,7 +171,7 @@ void scro::fps::apply() {
         g_savedOriginal = true;
     }
 
-    const int preset = std::clamp(static_cast<int>(std::lround(o.target.f)), 0, 7);
+    const int preset = std::clamp(static_cast<int>(std::lround(o.target.f)), 0, 8);
     const float requestedFps = o.boost.b ? kPresets[preset] : g_originalFps;
     const bool unlock = o.boost.b ? true : g_originalUnlock;
 
@@ -181,6 +181,20 @@ void scro::fps::apply() {
     if (auto* app = CCApplication::sharedApplication()) {
         app->setAnimationInterval(1.0 / static_cast<double>(requestedFps));
     }
+}
+
+// Called about once a second from anywhere (menus included): if the game changed the frame rate
+// (level start, pause, settings), put it back so the lock holds.
+void scro::fps::enforce() {
+    auto& o = options();
+    if (!o.boost.b) return;
+    auto* gm = GameManager::sharedState();
+    if (!gm) return;
+    float const want = kPresets[std::clamp(static_cast<int>(std::lround(o.target.f)), 0, 8)];
+    bool wrongTarget = std::fabs(gm->m_customFPSTarget - want) > 0.5f;
+    bool wrongInterval = false;
+    if (auto* dir = CCDirector::get()) wrongInterval = std::fabs(dir->getAnimationInterval() - 1.0 / want) > 0.0002;
+    if (wrongTarget || wrongInterval) scro::fps::apply();
 }
 
 class $modify(ScroFpsMenu, MenuLayer) {
@@ -259,7 +273,7 @@ std::vector<scro::fps::Held> scro::fps::drain() {
 #ifdef GEODE_IS_ANDROID
 class $modify(ScroFpsQueue, GJBaseGameLayer) {
     void queueButton(int button, bool down, bool isPlayer1, double timestamp) {
-        if (!scro::fps::g_bypass && PlayLayer::get()) scro::clicks::arrive();
+        if (!scro::fps::g_bypass && PlayLayer::get()) scro::fc::arrive();
         if (!scro::fps::g_bypass && scro::fps::precise() && PlayLayer::get()) {
             scro::fps::hold(button, down, isPlayer1);
             return;
