@@ -7,7 +7,8 @@ static auto& noglow = scro::toggle("Visuals", "noglow", "No Glow", "Remove glow 
 
 class $modify(ScroNoGlow, GameObject) {
     void addGlow(std::string frame) {
-        if (noglow.b || scro::fps::boostFrames()) return;
+        static auto* smoothOpt = &scro::find("smooth");
+        if (noglow.b || smoothOpt->b || scro::fps::boostFrames()) return;
         GameObject::addGlow(frame);
     }
 };
