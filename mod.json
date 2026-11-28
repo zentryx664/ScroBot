@@ -8,12 +8,14 @@
   },
   "id": "zentryx.scrobot",
   "name": "ScroBot",
-  "version": "v2.0.0",
+  "version": "v1.0.0",
   "developer": "Zentryx",
   "description": "Macro recorder with an editor, plus 30+ options in a clean floating menu. Tap the ball, or press Tab + W on desktop.",
   "tags": [
     "utility",
-    "cheat"
+    "cheat",
+    "gameplay",
+    "performance"
   ],
   "resources": {
     "sprites": [
