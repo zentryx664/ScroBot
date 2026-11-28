@@ -1,7 +1,7 @@
 #include "Core/Tick.hpp"
 #include "Hacks/FpsBoost.hpp"
 #include "Hacks/FrameStep.hpp"
-#include "Analysis/ClickAnalyzer.hpp"
+#include "Analysis/FrameCounter.hpp"
 #include <Geode/modify/GJBaseGameLayer.hpp>
 using namespace geode::prelude;
 
@@ -16,8 +16,8 @@ class $modify(ScroTickLayer, GJBaseGameLayer) {
         auto pl = PlayLayer::get();
         if (!pl) return GJBaseGameLayer::update(dt);
 
-        scro::clicks::frameBegin(dt);
-        struct FrameEnd { ~FrameEnd() { scro::clicks::frameEnd(); } } frameEnd;
+        scro::fc::frameBegin(dt);
+        struct FrameEnd { ~FrameEnd() { scro::fc::frameEnd(); } } frameEnd;
 
         if (scro::stepper::frozen()) {
             if (scro::fps::pending()) for (auto& h : scro::fps::drain()) releaseHeld(h);
