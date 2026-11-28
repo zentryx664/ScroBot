@@ -11,7 +11,7 @@ void buildTheme(Page& p, Overlay& overlay) {
         bool current = i == themeIndex();
         auto const& th = themeAt(i);
         // each row is drawn in the colours of the theme it selects
-        float h = kSize.row;
+        float h = rowH();
         p.box(0.f, p.y(), p.width(), h, th.card);
         p.box(0.f, p.y(), kSize.pad, h, th.accent);
         p.text(th.name, current ? th.accent : th.text, kSize.pad * 2.f + 2.f, p.y(), h);

@@ -52,6 +52,7 @@ private:
     float m_w;
     float m_y = 0.f;
     Ref<CCNode> m_root;
+    CCDrawNode* m_bg = nullptr;     // every box of the page is drawn into this one node (1 draw call)
     std::vector<Hit> m_hits;
 };
 }

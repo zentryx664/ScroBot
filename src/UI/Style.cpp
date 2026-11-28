@@ -1,5 +1,6 @@
 #include "UI/Style.hpp"
 #include <algorithm>
+#include "Utils/Settings.hpp"
 #include <cmath>
 
 namespace scro::style {
@@ -39,6 +40,46 @@ float lineHeightAtOne() {
     }
     return h;
 }
+}
+
+namespace {
+struct Grad { ccColor3B a, b, c; };
+Grad const kGrads[] = {
+    {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},                       // Off
+    {{255, 77, 255}, {140, 77, 255}, {13, 140, 255}},        // Aurora
+    {{255, 140, 40}, {255, 70, 120}, {190, 60, 255}},        // Sunset
+    {{20, 120, 255}, {20, 190, 230}, {40, 230, 180}},        // Ocean
+    {{60, 220, 120}, {150, 235, 80}, {235, 235, 70}},        // Forest
+    {{255, 120, 200}, {220, 110, 255}, {140, 120, 255}},     // Candy
+    {{255, 60, 60}, {255, 140, 40}, {255, 215, 60}},         // Fire
+};
+constexpr int kGradCount = static_cast<int>(sizeof(kGrads) / sizeof(kGrads[0]));
+}
+
+float tabScale() {
+    static scro::Option* o = &scro::find("tabresize");
+    return std::clamp(o->f / 100.f, 0.6f, 1.8f);
+}
+int gradientCount() { return kGradCount; }
+int gradientIndex() {
+    static scro::Option* o = &scro::find("uigradient");
+    return std::clamp(static_cast<int>(std::lround(o->f)), 0, kGradCount - 1);
+}
+CCDrawNode* gradientBar(float w, float h) {
+    auto n = CCDrawNode::create();
+    auto const& g = kGrads[gradientIndex()];
+    constexpr int cols = 24;
+    for (int i = 0; i < cols; ++i) {
+        float t = (static_cast<float>(i) + 0.5f) / cols;
+        ccColor3B c0 = t < 0.5f ? g.a : g.b, c1 = t < 0.5f ? g.b : g.c;
+        float u = t < 0.5f ? t * 2.f : (t - 0.5f) * 2.f;
+        auto mix = [&](GLubyte a, GLubyte b) { return (a + (b - a) * u) / 255.f; };
+        ccColor4F col = ccc4f(mix(c0.r, c1.r), mix(c0.g, c1.g), mix(c0.b, c1.b), 1.f);
+        float x0 = w * static_cast<float>(i) / cols, x1 = std::min(w, w * static_cast<float>(i + 1) / cols + 0.5f);
+        CCPoint q[4] = {{x0, 0.f}, {x1, 0.f}, {x1, h}, {x0, h}};
+        n->drawPolygon(q, 4, col, 0.f, ccc4f(0, 0, 0, 0));
+    }
+    return n;
 }
 
 int themeCount() { return kThemeCount; }

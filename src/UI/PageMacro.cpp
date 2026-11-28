@@ -1,6 +1,8 @@
 #include "Hacks/FrameStep.hpp"
+#include "Analysis/FrameCounter.hpp"
 #include "Macro/Bot.hpp"
 #include "Macro/Editor.hpp"
+#include "Utils/Settings.hpp"
 #include "Notifications/Notify.hpp"
 #include "UI/Pages.hpp"
 #include <algorithm>
@@ -71,11 +73,19 @@ void buildMacro(Page& p, Overlay& overlay) {
 
     // status
     ccColor4B statusColor = rec ? ccColor4B{255, 110, 110, 255} : play ? ccColor4B{110, 220, 160, 255} : t.text;
-    p.rowLabel(rec ? "Recording" : play ? "Playing" : "Idle", statusColor);
+    static scro::Option* frameCounter = &scro::find("clickan");
+    p.rowLabel(rec ? "Recording" : play ? (frameCounter->b ? "Playing - Frame Counter" : "Playing") : "Idle", statusColor);
     double seconds = static_cast<double>(bot.lastFrame()) / Editor::kStepsPerSecond;
     p.rowLabel(fmt::format("{} inputs  {:.1f}s", bot.actions.size(), seconds), t.muted);
     p.rowLabel(bot.name.empty() ? "not saved" : bot.name, t.muted);
 
+    p.rowToggle("Frame Counter", frameCounter->b, [o] {
+        frameCounter->b = !frameCounter->b;
+        if (frameCounter->b) scro::fc::reset();
+        scro::changed();
+        o->setInfo("Frame Counter: the macro reads the frame window of every click while it plays.");
+        o->refresh();
+    });
     p.rowHeading("Record");
     p.rowCells({
         {rec ? "Stop" : "Record", rec ? Btn::Danger : Btn::Accent, [o] { toggleMode(o, BotState::Recording); }},
@@ -124,7 +134,7 @@ void buildMacro(Page& p, Overlay& overlay) {
     p.rowHeading("Saved");
     auto saved = bot.list();
     if (saved.empty()) p.rowLabel("No saved macros", t.muted);
-    float const cellW = kSize.row * 1.9f;
+    float const cellW = rowH() * 1.9f;
     for (auto const& info : saved) {
         std::string name = info.name;
         bool confirm = g_confirmDelete == name;

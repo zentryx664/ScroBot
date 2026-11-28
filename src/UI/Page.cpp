@@ -4,21 +4,23 @@
 namespace scro::ui {
 using namespace style;
 
-Page::Page(float width) : m_w(width), m_root(CCNode::create()) {}
+Page::Page(float width) : m_w(width), m_root(CCNode::create()) {
+    m_bg = CCDrawNode::create();
+    m_bg->setTag(7731);                  // the window's cull pass skips this node
+    m_root->addChild(m_bg, -1);
+}
 
-float Page::rowHeight() const { return kSize.row; }
+float Page::rowHeight() const { return rowH(); }
 
 CCDrawNode* Page::box(float x, float top, float w, float h, ccColor4B color) {
-    auto n = CCDrawNode::create();
-    CCPoint q[4] = {{0.f, 0.f}, {w, 0.f}, {w, h}, {0.f, h}};
-    n->drawPolygon(q, 4, f4(color), 0.f, ccc4f(0, 0, 0, 0));
-    n->setPosition(x, -(top + h));
-    m_root->addChild(n);
-    return n;
+    float const y = -(top + h);
+    CCPoint q[4] = {{x, y}, {x + w, y}, {x + w, y + h}, {x, y + h}};
+    m_bg->drawPolygon(q, 4, f4(color), 0.f, ccc4f(0, 0, 0, 0));
+    return m_bg;
 }
 
 CCLabelBMFont* Page::text(std::string const& s, ccColor4B color, float x, float top, float boxH, float anchorX, float line) {
-    auto l = label(s, line > 0.f ? line : kSize.line, rgb(color), {anchorX, 0.5f}, {x, -(top + boxH / 2.f)});
+    auto l = label(s, line > 0.f ? line : lineH(), rgb(color), {anchorX, 0.5f}, {x, -(top + boxH / 2.f)});
     m_root->addChild(l);
     return l;
 }
@@ -38,7 +40,7 @@ ccColor4B Page::inkFor(Btn kind) const {
 }
 
 void Page::rowLabel(std::string const& s, ccColor4B color) {
-    float h = kSize.row;
+    float h = rowH();
     box(0.f, m_y, m_w, h, theme().card);
     auto l = text(s, color, kSize.pad + 2.f, m_y, h);
     float room = m_w - kSize.pad * 2.f - 4.f;
@@ -48,14 +50,14 @@ void Page::rowLabel(std::string const& s, ccColor4B color) {
 }
 
 void Page::rowHeading(std::string const& s) {
-    float h = kSize.row;
+    float h = rowH();
     box(0.f, m_y, m_w, h, theme().bg);
-    text(s, theme().muted, kSize.pad + 2.f, m_y, h, 0.f, kSize.line * 0.9f);
+    text(s, theme().muted, kSize.pad + 2.f, m_y, h, 0.f, lineH() * 0.9f);
     m_y += h + kSize.gap;
 }
 
 void Page::rowAction(std::string const& s, Btn kind, std::function<void()> fn) {
-    float h = kSize.row;
+    float h = rowH();
     box(0.f, m_y, m_w, h, theme().card);
     auto l = text(s, inkFor(kind), kSize.pad + 2.f, m_y, h);
     float room = m_w - kSize.pad * 2.f - 4.f;
@@ -67,7 +69,7 @@ void Page::rowAction(std::string const& s, Btn kind, std::function<void()> fn) {
 
 void Page::rowToggle(std::string const& s, bool on, std::function<void()> fn) {
     auto const& t = theme();
-    float h = kSize.row;
+    float h = rowH();
     float mark = h * 0.42f;
     box(0.f, m_y, m_w, h, t.card);
     auto l = text(s, on ? t.accent : t.text, kSize.pad + 2.f, m_y, h);
@@ -81,7 +83,7 @@ void Page::rowToggle(std::string const& s, bool on, std::function<void()> fn) {
 
 void Page::rowStep(std::string const& s, std::string const& value, std::function<void()> dec, std::function<void()> inc) {
     auto const& t = theme();
-    float h = kSize.row;
+    float h = rowH();
     float cell = h * 1.25f;
     box(0.f, m_y, m_w, h, t.card);
     auto l = text(s + ": ", t.text, kSize.pad + 2.f, m_y, h);
@@ -108,7 +110,7 @@ void Page::rowStep(std::string const& s, std::string const& value, std::function
 void Page::rowCells(std::vector<Cell> const& cells) {
     if (cells.empty()) return;
     auto const& t = theme();
-    float h = kSize.row;
+    float h = rowH();
     float gap = kSize.gap;
     float w = (m_w - gap * static_cast<float>(cells.size() - 1)) / static_cast<float>(cells.size());
     for (size_t i = 0; i < cells.size(); ++i) {
@@ -125,7 +127,7 @@ void Page::rowCells(std::vector<Cell> const& cells) {
 
 void Page::rowWithCells(std::string const& s, std::function<void()> fn, std::vector<Cell> const& right, float cellW) {
     auto const& t = theme();
-    float h = kSize.row;
+    float h = rowH();
     float gap = kSize.gap;
     float rightW = cellW * static_cast<float>(right.size()) + gap * static_cast<float>(right.size());
     box(0.f, m_y, m_w, h, t.card);

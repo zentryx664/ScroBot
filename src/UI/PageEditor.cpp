@@ -141,7 +141,7 @@ void buildEditor(Page& p, Overlay& overlay) {
     });
 
     float const w = p.width();
-    float const cIndex = kSize.pad * 2.f + kSize.row;
+    float const cIndex = kSize.pad * 2.f + rowH();
     float const cStep = cIndex + w * 0.13f;
     float const cButton = cStep + w * 0.2f;
     float const cType = cButton + w * 0.15f;
@@ -152,7 +152,7 @@ void buildEditor(Page& p, Overlay& overlay) {
         auto const& a = bot.actions[static_cast<size_t>(i)];
         bool picked = ed.sel[static_cast<size_t>(i)] != 0;
         float y = p.y();
-        float h = kSize.row;
+        float h = rowH();
         p.box(0.f, y, w, h, t.card);
         if (picked) p.box(0.f, y, w, h, withAlpha(t.accent, 70));
         float mark = h * 0.42f;

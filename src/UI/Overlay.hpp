@@ -27,6 +27,8 @@ public:
     void refresh();                         // redraw every window, keeping positions and scroll
     void rebuildAll();                      // after a theme change
     void applyScale();
+    void applyTabSize();                    // "Resize": tab width / row height changed
+    void redrawFor(std::string const& id);  // redraw one window (all if the id is unknown)
     void applyBall();
     void resetBallPosition();
     void resetLayout();
@@ -47,6 +49,7 @@ private:
     struct Win {
         std::string id;
         float widthFactor = 1.f;
+        float fx = -1000.f, fy = -1000.f; // remembered position as a share of the screen (-1000 = none yet)
         std::function<void(Page&)> build;
         float width = 0.f;
         float x = 0.f, y = 0.f;             // top-left corner, in menu coordinates
@@ -67,19 +70,26 @@ private:
     void autoLayout();
     void drawWindow(Win& w);
     void updateBar(Win& w);
+    void cullWindow(Win& w);                 // hide rows outside the scroll window (fewer draw calls)
+    void drawOne(Win& w);
+    void pulseBall();
     void drawAll();
     void applyPositions();
     void layout();
-    void saveWindow(Win const& w);
+    void saveWindow(Win& w);
     void savePositions();
     void placeBall();
     void setBallVisualScale(float multiplier);
     void clampBall();
     void clampWindow(Win& w);
     void bringToFront(size_t index);
+    void resolveOverlap(Win& w);             // move a dropped window to the nearest free spot
+public:
+    void flushSave();                        // write the saved positions to disk now
+private:
     float menuScale() const;
     float ballRadius() const;
-    float titleH() const { return style::kSize.title; }
+    float titleH() const { return style::titleHeight(); }
     float maxBodyH() const;
     float menuW() const;
     float menuH() const;
@@ -90,7 +100,9 @@ private:
 
     std::vector<Win> m_wins;
     std::vector<size_t> m_order;            // back to front
+    CCNode* m_menuAnim = nullptr;           // open/close animation, scales around the ball
     CCNode* m_menu = nullptr;               // scaled container for the windows
+    std::string m_tappedId;                 // window whose button is being handled
     CCNode* m_ball = nullptr;
     CCNode* m_info = nullptr;
     std::string m_infoText;
@@ -98,6 +110,7 @@ private:
 
     bool m_open = false;
     CCSize m_win;
+    CCSize m_pendingWin;                    // last seen screen size, applied once it is stable
     CCPoint m_ballPos, m_ballFrac{0.05f, 0.6f};
 
     bool m_touching = false, m_moved = false, m_held = false;
