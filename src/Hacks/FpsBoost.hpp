@@ -10,5 +10,6 @@ bool pending();                   // inputs are being held
 void hold(int button, bool down, bool p1);
 std::vector<Held> drain();        // take held inputs, with their position inside this frame
 void apply();                     // push FPS settings to the game
+void enforce();                   // re-apply if the game changed the frame rate behind our back
 bool boostFrames();               // FPS Boost + Boost Frames are on
 }
